@@ -1,0 +1,16 @@
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# Config settings
+album_serv/*
+db.sqlite3
+manage.py
+pip-selfcheck.json
+
+# Includes
+Include/*
+Lib/*
+Scripts/*
