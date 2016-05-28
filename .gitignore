@@ -14,3 +14,9 @@ pip-selfcheck.json
 Include/*
 Lib/*
 Scripts/*
+
+# IDs
+poster/ids.py
+
+# Cache
+.cache-*
