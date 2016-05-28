@@ -17,7 +17,7 @@ def index(request):
 
 
 def spotify_setup(request):
-    template = loader.get_template('poster/index.html')
+    template = loader.get_template('poster/spotifysetup.html')
     return HttpResponse(template.render(request))
 
 def spotify_auth(request):
