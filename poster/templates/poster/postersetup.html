@@ -1,0 +1,266 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ShapeBootstrap Clean Template</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+	
+	<!-- Bootstrap -->
+  <link href="{% static 'poster/css/bootstrap.css' %}" rel="stylesheet">
+  <link href="{% static 'poster/css/bootstrap-responsive.css' %}" rel="stylesheet">
+  <link href="{% static 'poster/css/style.css' %}" rel="stylesheet">
+
+
+  <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+  <![endif]-->
+
+  <!-- Fav and touch icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="img/apple-touch-icon-144-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/apple-touch-icon-114-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/apple-touch-icon-72-precomposed.png">
+  <link rel="apple-touch-icon-precomposed" href="img/apple-touch-icon-57-precomposed.png">
+  <link rel="shortcut icon" href="img/favicon.png">
+  
+
+
+    <!-- SCRIPT 
+    ============================================================-->  
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <script src="{% static 'poster/js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'poster/js/jquery.collision.js' %}" charster="utf-8"></script>
+    <script type="text/javascript" src="{% static 'poster/js/jquery.coords.js' %}" charster="utf-8"></script>
+    <script type="text/javascript" src="{% static 'poster/js/jquery.draggable.js' %}" charster="utf-8"></script>
+    <script type="text/javascript" src="{% static 'poster/js/jquery.gridster.js' %}" charster="utf-8"></script>
+
+</head>
+
+<body>
+
+
+  <!--HEADER ROW-->
+  <div id="header-row">
+    <div class="container">
+      <div class="row">
+              <!--LOGO-->
+              <div class="span3"><a class="brand" href="#"><img src="{% static 'poster/img/logo.png' %}"/></a></div>
+              <!-- /LOGO -->
+
+            <!-- MAIN NAVIGATION -->  
+              <div class="span9">
+                <div class="navbar  pull-right">
+                  <div class="navbar-inner">
+                    <a data-target=".navbar-responsive-collapse" data-toggle="collapse" class="btn btn-navbar"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>
+                    <div class="nav-collapse collapse navbar-responsive-collapse">
+                    <ul class="nav">
+                        <li class="active"><a href="index.html">Home</a></li>
+                        
+                        <li class="dropdown">
+                          <a href="about.html" class="dropdown-toggle" data-toggle="dropdown">About <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                  <li><a href="about.html">Company</a></li>
+                                  <li><a href="about.html">History</a></li>
+                                  <li><a href="about.html">Team</a></li>
+                            </ul>
+
+                        </li>
+
+                        <li><a href="spotify_setup">Spotify Generator</a></li>
+                        <li><a href="gpmaa">Google Play Music Generator</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                 
+                    </ul>
+                  </div>
+
+                  </div>
+                </div>
+              </div>
+            <!-- MAIN NAVIGATION -->  
+      </div>
+    </div>
+  </div>
+  <!-- /HEADER ROW -->
+
+
+
+
+<div class="container">
+	  <!--PAGE TITLE-->
+
+	<div class="row">
+		<div class="span12">
+		<div class="page-header">
+				<h1>
+				Contact
+			</h1>
+		</div>
+		</div>
+	</div>
+
+  <!-- /. PAGE TITLE-->
+
+  <div class="row">
+
+  		<span class="span6">
+  			<div class="container">
+            <div class="row">
+              <div class="span1" style="position:relative;">
+                   
+                      <div class="mySlides" data-tooltip="#as">
+                        <img class="img-responsive" src="{% static 'poster/img/spot1.jpg' %}">
+                        <div id="as" class="title">
+                          Trolltunga, Norway 
+                          Trolltunga, Norway 
+                          Trolltunga, Norway   
+                        </div>
+                      </div>
+
+                      <div class="mySlides" data-tooltip="#asf">
+                        <img class="img-responsive" src="{% static 'poster/img/spot2.jpg' %}">
+                        <div id="asf" class="title">
+                          Northern Lights, Norway
+                        </div>
+                      </div>
+
+
+                      <a class="w3-btn-floating w3-hover-dark-grey" style="position:absolute;top:45%;left:0" onclick="plusDivs(-1)">❮</a>
+                      <a class="w3-btn-floating w3-hover-dark-grey" style="position:absolute;top:45%;right:0" onclick="plusDivs(1)">❯</a>
+              </div>
+              
+            </div>
+                    
+
+                      <script>
+
+                          $(".mySlides").hover(function(e) {
+                              $($(this).data("tooltip")).css({
+                                  left: e.pageX + 1,
+                                  top: e.pageY + 1
+                              }).stop().show(100);
+                          }, function() {
+                              $($(this).data("tooltip")).hide();
+                          });
+
+                          var slideIndex = 1;
+                          showDivs(slideIndex);
+
+                          function plusDivs(n) {
+                            showDivs(slideIndex += n);
+                          }
+
+                          function showDivs(n) {
+                            var i;
+                            var x = document.getElementsByClassName("mySlides");
+                            if (n > x.length) {slideIndex = 1}    
+                            if (n < 1) {slideIndex = x.length} ;
+                            for (i = 0; i < x.length; i++) {
+                               x[i].style.display = "none";  
+                            }
+                            x[slideIndex-1].style.display = "block";  
+                          }
+                      </script>
+        </div>
+  		</span>
+      <span class="span6"></span>
+  </div>
+
+	
+</div>
+
+<script type="text/javascript">
+    // THANKS TO http://codepen.io/jmhmd/pen/JdPGgW
+    var el = $('#grid-select');
+    var cols = 6;
+    var rows = 6;
+
+    var clickHandler = function() {
+      var target = $(this);
+      var cellIndex = target.index() + 1;
+      var rowIndex = target.parent().index() + 1;
+      if (cellIndex > 2 && rowIndex > 2) {
+        // TODO display reason why
+        window.location.href = "/spotify_auth?col=" 
+            + cellIndex.toString() + "&row=" + rowIndex.toString();
+      }
+    }
+
+    var table = $('<table>').addClass('layout-select');
+    el.append(table);
+
+    for (var i=0; i < rows; i++){
+      var row = $('<tr>');
+      table.append(row);
+      
+      for (var j=0; j < cols; j++){
+        var cell = $('<td>');
+        cell.append($('<div>'));
+        row.append(cell);
+      }
+    }
+
+    function clearHighlight (target) {  
+      target.parent().parent().find('div').removeClass('grid-select-active');
+    }
+
+    function addHighlight (target){
+      var cellIndex = target.index();
+      var rowIndex = target.parent().index();
+      var rows = target.parent().parent().children();
+      
+      for (var i=0; i<=rowIndex; i++) {
+        $(rows[i])
+          .children()
+          .eq(cellIndex)
+          .prevAll()
+          .addBack()
+          .find('div')
+          .addClass('grid-select-active');
+      }  
+    }
+
+    table.find('td').on('click', clickHandler);
+
+    table.find('td').on('mouseover', function(){
+      var target = $(this);
+      addHighlight(target);
+    })
+
+    table.on('mouseout', function(){
+      var target = $(this);
+      clearHighlight(target);
+    })
+</script>
+
+
+<!--Footer
+==========================-->
+
+<footer>
+    <div class="container">
+      <div class="row">
+        <div class="span6">Copyright &copy 2013 Shapebootstrap | All Rights Reserved  <br>
+        <small>Aliquam tincidunt mauris eu risus.</small>
+        </div>
+        <div class="span6">
+            <div class="social pull-right">
+                <a href="#"><img src="{% static 'poster/img/social/googleplus.png' %}" alt=""></a>
+                <a href="#"><img src="{% static 'poster/img/social/dribbble.png' %}" alt=""></a>
+                <a href="#"><img src="{% static 'poster/img/social/twitter.png' %}" alt=""></a>
+                <a href="#"><img src="{% static 'poster/img/social/dribbble.png' %}" alt=""></a>
+                <a href="#"><img src="{% static 'poster/img/social/rss.png' %}" alt=""></a>
+            </div>
+        </div>
+      </div>
+    </div>
+</footer>
+
+<!--/.Footer-->
+
+</body>
+</html>
