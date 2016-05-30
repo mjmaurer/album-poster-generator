@@ -110,27 +110,34 @@
   		<span class="span6">
   			<div class="container">
             <div class="row">
-              <div class="span1" style="position:relative;">
+              <div class="span6" style="position:relative;">
                    
                       <div class="mySlides" data-tooltip="#as">
-                        <img class="img-responsive" src="{% static 'poster/img/spot1.jpg' %}">
-                        <div id="as" class="title">
-                          Trolltunga, Norway 
-                          Trolltunga, Norway 
-                          Trolltunga, Norway   
-                        </div>
+                        <img class="img-responsive" title="1" src="https://i.scdn.co/image/5f8349e8e4ed81b48f033a9818939c835520f150">
                       </div>
 
                       <div class="mySlides" data-tooltip="#asf">
-                        <img class="img-responsive" src="{% static 'poster/img/spot2.jpg' %}">
-                        <div id="asf" class="title">
-                          Northern Lights, Norway
-                        </div>
+                        <img class="img-responsive"  title="2"  src="https://i.scdn.co/image/f8717f432506ab213c4de0c66d6ac24cd07ecf72">
                       </div>
 
 
-                      <a class="w3-btn-floating w3-hover-dark-grey" style="position:absolute;top:45%;left:0" onclick="plusDivs(-1)">❮</a>
-                      <a class="w3-btn-floating w3-hover-dark-grey" style="position:absolute;top:45%;right:0" onclick="plusDivs(1)">❯</a>
+                      <img src="{% static 'poster/img/left.png' %}" class="arrow" style="top:45%;left:0" onclick="plusDivs(-1)"></img>
+                      <img src="{% static 'poster/img/right.png' %}" class="arrow" style="top:45%;right:0" onclick="plusDivs(1)"></img>
+              </div>
+
+              <div class="span6" style="position:relative;">
+                   
+                      <div class="mySlides2" data-tooltip="#as">
+                        <img class="img-responsive" title="1" src="https://i.scdn.co/image/5f8349e8e4ed81b48f033a9818939c835520f150">
+                      </div>
+
+                      <div class="mySlides2" data-tooltip="#asf">
+                        <img class="img-responsive"  title="2"  src="https://i.scdn.co/image/f8717f432506ab213c4de0c66d6ac24cd07ecf72">
+                      </div>
+
+
+                      <img src="{% static 'poster/img/left.png' %}" class="arrow" style="top:45%;left:0" onclick="plusDivs2(-1)"></img>
+                      <img src="{% static 'poster/img/right.png' %}" class="arrow" style="top:45%;right:0" onclick="plusDivs2(1)"></img>
               </div>
               
             </div>
@@ -138,14 +145,24 @@
 
                       <script>
 
-                          $(".mySlides").hover(function(e) {
-                              $($(this).data("tooltip")).css({
-                                  left: e.pageX + 1,
-                                  top: e.pageY + 1
-                              }).stop().show(100);
-                          }, function() {
-                              $($(this).data("tooltip")).hide();
-                          });
+
+                          var slideIndex2 = 1;
+                          showDivs2(slideIndex2);
+
+                          function plusDivs2(n) {
+                            showDivs2(slideIndex2 += n);
+                          }
+
+                          function showDivs2(n) {
+                            var i;
+                            var x = document.getElementsByClassName("mySlides2");
+                            if (n > x.length) {slideIndex2 = 1}    
+                            if (n < 1) {slideIndex2 = x.length} ;
+                            for (i = 0; i < x.length; i++) {
+                               x[i].style.display = "none";  
+                            }
+                            x[slideIndex2-1].style.display = "block";  
+                          }
 
                           var slideIndex = 1;
                           showDivs(slideIndex);
