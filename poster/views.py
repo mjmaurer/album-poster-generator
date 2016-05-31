@@ -19,7 +19,7 @@ def poster_dim_from_session(request):
     if request.session.get('poster_col') and request.session.get('poster_row'):
         return (request.session.get('poster_row'), request.session.get('poster_col'))
     else:
-        raise
+        raise Exception("No query args present for dimensions")
 
 def spotify_setup(request):
     template = loader.get_template('poster/spotifysetup.html')
@@ -61,7 +61,13 @@ def spotify_main(token, request):
         result = sp.current_user_top_artists(limit=50, offset=0, time_range='long_term')
         template = loader.get_template('poster/postersetup.html')
         return HttpResponse(template.render(request)) 
-    except:
+    except spotipy.SpotifyException as e:
+        print("SESSION HAS EXPIRED ", e)
+        # TODO session has expired
+        template = loader.get_template('poster/index.html')
+        return HttpResponse(template.render(request)) 
+    except Exception as e:
+        print('My exception occurred, value:', e)
         # TODO session has expired
         template = loader.get_template('poster/index.html')
         return HttpResponse(template.render(request)) 
