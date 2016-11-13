@@ -19,10 +19,30 @@
 
   <div class="row">
 
-  		<span class="span6">
   			<div class="container">
-            <div class="row">
-              <div class="span6" style="position:relative;">
+          {% for key, row in artist_rows.items %}
+              <div class="row">
+              {% for key2, artist in row.items %}
+              <div class="{{ span_sized }} nopadding" style="position:relative;">
+                   
+
+                          {% for name, pic_source in artist.items %}
+
+                          <div class="slide{{ forloop.parentloop.counter }}{{ forloop.parentloop.parentloop.counter }}">
+                            <img class="img-responsive" title="{{ name }}" src="{{ pic_source }}">
+                          </div>
+
+                          {% endfor %}
+
+                          <img src="{% static 'poster/img/left.png' %}" class="arrow" style="top:45%;left:0" onclick="plusDivs{{ forloop.counter }}{{ forloop.parentloop.counter }}(-1)"></img>
+                          <img src="{% static 'poster/img/right.png' %}" class="arrow" style="top:45%;right:0" onclick="plusDivs{{ forloop.counter }}{{ forloop.parentloop.counter }}(1)"></img>
+
+              </div>
+              {% endfor %}
+              </div>
+          {% endfor %}
+            <!-- <div class="row">
+              <div class="span6 nopadding" style="position:relative;">
                    
                       <div class="mySlides" data-tooltip="#as">
                         <img class="img-responsive" title="1" src="https://i.scdn.co/image/5f8349e8e4ed81b48f033a9818939c835520f150">
@@ -37,7 +57,7 @@
                       <img src="{% static 'poster/img/right.png' %}" class="arrow" style="top:45%;right:0" onclick="plusDivs(1)"></img>
               </div>
 
-              <div class="span6" style="position:relative;">
+              <div class="span6 nopadding" style="position:relative;">
                    
                       <div class="mySlides2" data-tooltip="#as">
                         <img class="img-responsive" title="1" src="https://i.scdn.co/image/5f8349e8e4ed81b48f033a9818939c835520f150">
@@ -52,115 +72,36 @@
                       <img src="{% static 'poster/img/right.png' %}" class="arrow" style="top:45%;right:0" onclick="plusDivs2(1)"></img>
               </div>
               
-            </div>
+            </div> -->
                     
 
                       <script>
 
+                      {% for key, row in artist_rows.items %}
+                   
+                        {% for key2, artist in row.items %}
+                            var slideIndex{{ forloop.counter }}{{ forloop.parentloop.counter }} = 1;
+                            showDivs{{ forloop.counter }}{{ forloop.parentloop.counter }}(slideIndex{{ forloop.counter }}{{ forloop.parentloop.counter }});
 
-                          var slideIndex2 = 1;
-                          showDivs2(slideIndex2);
-
-                          function plusDivs2(n) {
-                            showDivs2(slideIndex2 += n);
-                          }
-
-                          function showDivs2(n) {
-                            var i;
-                            var x = document.getElementsByClassName("mySlides2");
-                            if (n > x.length) {slideIndex2 = 1}    
-                            if (n < 1) {slideIndex2 = x.length} ;
-                            for (i = 0; i < x.length; i++) {
-                               x[i].style.display = "none";  
+                            function plusDivs{{ forloop.counter }}{{ forloop.parentloop.counter }}(n) {
+                              showDivs{{ forloop.counter }}{{ forloop.parentloop.counter }}(slideIndex{{ forloop.counter }}{{ forloop.parentloop.counter }} += n);
                             }
-                            x[slideIndex2-1].style.display = "block";  
-                          }
 
-                          var slideIndex = 1;
-                          showDivs(slideIndex);
-
-                          function plusDivs(n) {
-                            showDivs(slideIndex += n);
-                          }
-
-                          function showDivs(n) {
-                            var i;
-                            var x = document.getElementsByClassName("mySlides");
-                            if (n > x.length) {slideIndex = 1}    
-                            if (n < 1) {slideIndex = x.length} ;
-                            for (i = 0; i < x.length; i++) {
-                               x[i].style.display = "none";  
+                            function showDivs{{ forloop.counter }}{{ forloop.parentloop.counter }}(n) {
+                              var i;
+                              var x = document.getElementsByClassName("slide{{ forloop.counter }}{{ forloop.parentloop.counter }}");
+                              if (n > x.length) {slideIndex{{ forloop.counter }}{{ forloop.parentloop.counter }} = 1}    
+                              if (n < 1) {slideIndex{{ forloop.counter }}{{ forloop.parentloop.counter }} = x.length} ;
+                              for (i = 0; i < x.length; i++) {
+                                 x[i].style.display = "none";  
+                              }
+                              x[slideIndex{{ forloop.counter }}{{ forloop.parentloop.counter }}-1].style.display = "block";  
                             }
-                            x[slideIndex-1].style.display = "block";  
-                          }
+                          {% endfor %}
+                        {% endfor %}
                       </script>
         </div>
-  		</span>
-      <span class="span6"></span>
   </div>
 
-	<script type="text/javascript">
-      // THANKS TO http://codepen.io/jmhmd/pen/JdPGgW
-      var el = $('#grid-select');
-      var cols = 6;
-      var rows = 6;
-
-      var clickHandler = function() {
-        var target = $(this);
-        var cellIndex = target.index() + 1;
-        var rowIndex = target.parent().index() + 1;
-        if (cellIndex > 2 && rowIndex > 2) {
-          // TODO display reason why
-          window.location.href = "/spotify_auth?col=" 
-              + cellIndex.toString() + "&row=" + rowIndex.toString();
-        }
-      }
-
-      var table = $('<table>').addClass('layout-select');
-      el.append(table);
-
-      for (var i=0; i < rows; i++){
-        var row = $('<tr>');
-        table.append(row);
-        
-        for (var j=0; j < cols; j++){
-          var cell = $('<td>');
-          cell.append($('<div>'));
-          row.append(cell);
-        }
-      }
-
-      function clearHighlight (target) {  
-        target.parent().parent().find('div').removeClass('grid-select-active');
-      }
-
-      function addHighlight (target){
-        var cellIndex = target.index();
-        var rowIndex = target.parent().index();
-        var rows = target.parent().parent().children();
-        
-        for (var i=0; i<=rowIndex; i++) {
-          $(rows[i])
-            .children()
-            .eq(cellIndex)
-            .prevAll()
-            .addBack()
-            .find('div')
-            .addClass('grid-select-active');
-        }  
-      }
-
-      table.find('td').on('click', clickHandler);
-
-      table.find('td').on('mouseover', function(){
-        var target = $(this);
-        addHighlight(target);
-      })
-
-      table.on('mouseout', function(){
-        var target = $(this);
-        clearHighlight(target);
-      })
-  </script>
 </div>
 {% endblock %}

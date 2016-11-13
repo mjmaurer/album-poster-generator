@@ -19,6 +19,11 @@ p{line-height: 24px}
 a{color:#0088cc;}
 a:hover{text-decoration: none;}
 
+.nopadding {
+   padding: 0 !important;
+   margin: 0 !important;
+}
+
 .arrow {
 	display:inline-block;
 	background-color:#fff;
