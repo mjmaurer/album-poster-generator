@@ -1,120 +1,25 @@
-{% extends "poster/index.html" %}
+{% extends "poster/setup.html" %}
 {% load staticfiles %}
 
 
-{% block content %}
-<div class="container">
-	  <!--PAGE TITLE-->
+{% block config %}
+<h3><strong>Time Period</strong></h3>
 
-	<div class="row">
-		<div class="span12">
-		<div class="page-header">
-				<h1>
-				Contact
-			</h1>
-		</div>
-		</div>
-	</div>
+Time period that Spotify looks back to calculate your favorite artists 
+<a href="https://developer.spotify.com/web-api/get-users-top-artists-and-tracks/">
+as defined here.
+</a>
+<br>
+<br>
+<select>
+  <option value="long_term">Long Term</option>
+  <option value="medium_term">Medium Term</option>
+  <option value="short_term">Short Term</option>
+</select>
+<br>
 
-  <!-- /. PAGE TITLE-->
+<b>Long term</b> - Data from the last several years. <br>
+<b>Medium term</b> - Data from the last six months. <br>
+<b>Short term</b> - Data from the last four weeks. <br>
 
-  <div class="row">
-
-  		<span class="span6">
-  			<div align="center" id="grid-select"></div>
-  		</span>
-
-
-  		<span class="span6">
-
-
-
-  			<h3>Address</h3>
-  			<address>
-  <strong>Fornax, Inc.</strong><br>
-  795 Folsom Ave, Suite 600<br>
-  San Francisco, CA 94107<br>
-  <abbr title="Phone">P:</abbr> (123) 456-7890
-</address>
- 
-<address>
-  <strong>Full Name</strong><br>
-  <a href="mailto:#">first.last@example.com</a>
-</address>
-
-  			<p>
-Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis.
-
-
-  			</p>
-  		</span>
-
-  </div>
-
-	
-</div>
-
-<script type="text/javascript">
-    // THANKS TO http://codepen.io/jmhmd/pen/JdPGgW
-    var el = $('#grid-select');
-    var cols = 6;
-    var rows = 6;
-
-    var clickHandler = function() {
-      var target = $(this);
-      var cellIndex = target.index() + 1;
-      var rowIndex = target.parent().index() + 1;
-      if (cellIndex > 2 && rowIndex > 2) {
-        // TODO display reason why
-        window.location.href = "/spotify_auth?col=" 
-            + cellIndex.toString() + "&row=" + rowIndex.toString();
-      }
-    }
-
-    var table = $('<table>').addClass('layout-select');
-    el.append(table);
-
-    for (var i=0; i < rows; i++){
-      var row = $('<tr>');
-      table.append(row);
-      
-      for (var j=0; j < cols; j++){
-        var cell = $('<td>');
-        cell.append($('<div>'));
-        row.append(cell);
-      }
-    }
-
-    function clearHighlight (target) {  
-      target.parent().parent().find('div').removeClass('grid-select-active');
-    }
-
-    function addHighlight (target){
-      var cellIndex = target.index();
-      var rowIndex = target.parent().index();
-      var rows = target.parent().parent().children();
-      
-      for (var i=0; i<=rowIndex; i++) {
-        $(rows[i])
-          .children()
-          .eq(cellIndex)
-          .prevAll()
-          .addBack()
-          .find('div')
-          .addClass('grid-select-active');
-      }  
-    }
-
-    table.find('td').on('click', clickHandler);
-
-    table.find('td').on('mouseover', function(){
-      var target = $(this);
-      addHighlight(target);
-    })
-
-    table.on('mouseout', function(){
-      var target = $(this);
-      clearHighlight(target);
-    })
-</script>
 {% endblock %}
