@@ -4,17 +4,24 @@ from django.template import loader, Context
 from spotipy import oauth2
 import spotipy
 
+import pylast
+
 from django.http import HttpResponse
 from django.http import HttpRequest
 from django.http import HttpResponseRedirect
+from lastfmhelper import LastFmHelper
 import sys, os
 
+import sys
 from sets import Set
 
+from util import get_period_from_string
 from gmusicapi import Mobileclient
 import musicbrainzngs
 import ids
 import spotify_scopes as sscopes
+
+BASE_URL = "http://127.0.0.1:8000"
 
 def index(request):
     template = loader.get_template('poster/index.html')
@@ -26,6 +33,24 @@ def poster_dim_from_session(request):
     else:
         raise Exception("No query args present for dimensions")
 
+def type_from_session(request):
+    if request.session.get('type'):
+        return request.session.get('type')
+    else:
+        raise Exception("No query args present for type")
+
+def period_from_session(request):
+    if request.session.get('timeperiod'):
+        return request.session.get('timeperiod')
+    else:
+        raise Exception("No query args present for type")
+
+# Context is:
+# artist_rows : 
+#   1 : [{title: url}, {title: url}, ...]
+#   2 : ...
+# span_sized:
+#   12 / cols
 def build_poster_template_context(rows, cols, artists, spotipy):
     context = {}
     context['artist_rows'] = {}
@@ -66,11 +91,15 @@ def get_artist_ids(result):
 
 def spotify_setup(request):
     template = loader.get_template('poster/spotifysetup.html')
-    return HttpResponse(template.render(request))
+    return HttpResponse({"action" : "spotify_main"}, template.render(request))
+
+def lastfm_setup(request):
+    template = loader.get_template('poster/lastfmsetup.html')
+    return HttpResponse(template.render({"action" : "lastfm_main"}, request))
 
 def spotify_auth(request):
     sp_oauth = oauth2.SpotifyOAuth(ids.SPOTIFY_CLIENT_ID, ids.SPOTIFY_APP_SECRET,
-        "http://127.0.0.1:8000/spotify_auth", scope=sscopes.USER_TOP_READ)
+        BASE_URL + "/spotify_auth", scope=sscopes.USER_TOP_READ)
 
     # TODO bad username handling
 
@@ -90,23 +119,44 @@ def spotify_auth(request):
         auth_url = sp_oauth.get_authorize_url()
         return HttpResponseRedirect(auth_url)
 
+def lastfm_auth(request):
+    # TODO bad username handling
+    network = pylast.LastFMNetwork(api_key = ids.LASTFM_KEY, api_secret =
+        ids.LASTFM_APP_SECRET)
+
+    if request.GET.get("token") is not None:
+        # Spotify is returning with access code
+        try:
+            token = request.GET.get("token")
+            sg = pylast.SessionKeyGenerator(network)
+            my_session_key = sg.get_web_auth_session_key(BASE_URL, token)
+            request.session['key'] = my_session_key
+        except:
+            print(sys.exc_info())
+            # TODO return error page
+            template = loader.get_template('poster/index.html')
+            return HttpResponse(template.render(request))
+        return lastfm_setup(request)
+    else:
+        # Must go to LastFM to get access code
+        auth_url = "http://www.last.fm/api/auth/?api_key=" + ids.LASTFM_KEY + "&cb=" + BASE_URL + "/lastfm_auth"
+        # auth_url = sg.get_web_auth_url()
+        return HttpResponseRedirect(auth_url)
+
     
 # Accepts a token
 def spotify_main(request):
-
     # Store poster dimensions in session
     if request.GET.get("row") is not None and request.GET.get("col") is not None:
         request.session['poster_col'] = request.GET.get("col")
         request.session['poster_row'] = request.GET.get("row")
 
-    # musicbrainzngs.set_useragent("Album art poster generator", ".1", "mjmaurer777@gmail.com")
-    # return HttpResponse(str(musicbrainzngs.get_release_group_image_list("8ea1c67a-4f1a-4eb0-887a-f249e782b6f8")))
+    if (request.GET.get("timeperiod") is not None):
+        request.session['timeperiod'] = request.GET.get("timeperiod")
+    else:
+        request.session['timeperiod'] = "medium_term"
 
 
-    # api = Mobileclient()
-    # api.login('mjmaurer777@gmail.com', '', Mobileclient.FROM_MAC_ADDRESS)
-    # return HttpResponse(str(api.search("Brendan kelly and the wandering birds id rather die"))) 
-  
     if ("code" in request.session):
         token = request.session["code"]
     else:
@@ -115,7 +165,7 @@ def spotify_main(request):
     sp = spotipy.Spotify(auth=token)
     try:
         row, col = poster_dim_from_session(request) 
-        result = sp.current_user_top_artists(limit=row * col, offset=0, time_range='medium_term')
+        result = sp.current_user_top_artists(limit=row * col, offset=0, time_range=period_from_session(request))
         artists = get_artist_ids(result)
         context = build_poster_template_context(row, col, artists, sp)
         template = loader.get_template('poster/postersetup.html')
@@ -125,6 +175,50 @@ def spotify_main(request):
         # TODO session has expired
         template = loader.get_template('poster/index.html')
         return HttpResponse(template.render(request)) 
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
+        print('My exception occurred, value:', e)
+        # TODO session has expired and take this sys shit out
+        template = loader.get_template('poster/index.html')
+        return HttpResponse(template.render(request)) 
+
+# Accepts a token
+def lastfm_main(request):
+
+    # Store poster dimensions in session
+    if request.GET.get("row") is not None and request.GET.get("col") is not None:
+        request.session['poster_col'] = request.GET.get("col")
+        request.session['poster_row'] = request.GET.get("row")
+
+    if (request.GET.get("timeperiod") is not None):
+        request.session['timeperiod'] = get_period_from_string(request.GET.get("timeperiod"))
+    else:
+        request.session['timeperiod'] = pylast.PERIOD_OVERALL
+
+    if (request.GET.get("type") is not None):
+        request.session['type'] = request.GET.get("type")
+    else:
+        request.session['type'] = "Album"
+
+
+    if ("key" in request.session):
+        my_session_key = request.session["key"]
+    else:
+        return lastfm_auth(request)
+
+    network = pylast.LastFMNetwork(api_key = ids.LASTFM_KEY, api_secret =
+            ids.LASTFM_APP_SECRET, session_key = my_session_key)
+
+    try:
+        row, col = poster_dim_from_session(request)
+        myType = type_from_session(request)
+        period = period_from_session(request)
+        user = network.get_authenticated_user()
+        context = LastFmHelper.factory(myType, user, col, row, period).create_context()
+        template = loader.get_template('poster/postersetup.html')
+        return HttpResponse(template.render(context, request)) 
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]

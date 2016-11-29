@@ -1,8 +1,7 @@
 {% extends "poster/setup.html" %}
 {% load staticfiles %}
 
-
-{% block config %}
+{% block extraform %}
 <h3><strong>Time Period</strong></h3>
 
 Time period that Spotify looks back to calculate your favorite artists 
@@ -11,7 +10,7 @@ as defined here.
 </a>
 <br>
 <br>
-<select>
+<select name="timeperiod">
   <option value="long_term">Long Term</option>
   <option value="medium_term">Medium Term</option>
   <option value="short_term">Short Term</option>

@@ -1,0 +1,33 @@
+{% extends "poster/setup.html" %}
+{% load staticfiles %}
+
+{% block extraform %}
+<h3><strong>Time Period</strong></h3>
+
+Time period for LastFM to add up the scrobbles.
+<br>
+<br>
+<select name="timeperiod">
+  <option value="1 Week">Past Week</option>
+  <option value="30 Days">Past 30 Days</option>
+  <option value="90 Days">Past 90 Days</option>
+  <option value="180 Days">Past 180 Days</option>
+  <option value="1 Year">Past Year</option>
+  <option value="All time">All time</option>
+</select>
+
+<h3><strong>Image Type</strong></h3>
+
+What to calculate the top rankings for.
+<br>
+<br>
+<select name="type">
+  <option value="Album">Album</option>
+  <option value="Artist">Artist</option>
+</select>
+<br>
+
+<b>Album</b> - Calculates top albums and tiles the album cover. <br>
+<b>Artist</b> - Calculates top artists and tiles the artist image from LastFM. <br>
+
+{% endblock %}

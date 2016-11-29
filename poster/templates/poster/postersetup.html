@@ -34,8 +34,10 @@
 
                           {% endfor %}
 
-                          <img src="{% static 'poster/img/left.png' %}" class="arrow" style="top:45%;left:0" onclick="plusDivs{{ forloop.counter }}{{ forloop.parentloop.counter }}(-1)"></img>
-                          <img src="{% static 'poster/img/right.png' %}" class="arrow" style="top:45%;right:0" onclick="plusDivs{{ forloop.counter }}{{ forloop.parentloop.counter }}(1)"></img>
+                          {% if artist|length > 1 %}
+                              <img src="{% static 'poster/img/left.png' %}" class="arrow" style="top:45%;left:0" onclick="plusDivs{{ forloop.counter }}{{ forloop.parentloop.counter }}(-1)"></img>
+                              <img src="{% static 'poster/img/right.png' %}" class="arrow" style="top:45%;right:0" onclick="plusDivs{{ forloop.counter }}{{ forloop.parentloop.counter }}(1)"></img>
+                          {% endif %}
 
               </div>
               {% endfor %}

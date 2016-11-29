@@ -28,7 +28,11 @@
   		<span class="span6">
 
         <div id="config">
-            {% block config %}{% endblock %}
+          <form id="setupForm" action="{{action}}">
+            <input type="hidden" name="col" id="colField">
+            <input type="hidden" name="row" id="rowField">
+            {% block extraform %}{% endblock %}
+          </form>
         </div>
   		</span>
 
@@ -49,8 +53,11 @@
       var rowIndex = target.parent().index() + 1;
       if (cellIndex > 2 && rowIndex > 2) {
         // TODO display reason why
-        window.location.href = "/spotify_main?col=" 
-            + cellIndex.toString() + "&row=" + rowIndex.toString();
+        document.getElementById("colField").value = cellIndex.toString();
+        document.getElementById("rowField").value = rowIndex.toString();
+        document.getElementById("setupForm").submit();
+        // window.location.href = "/spotify_main?col=" 
+        //     + cellIndex.toString() + "&row=" + rowIndex.toString();
       }
     }
 
