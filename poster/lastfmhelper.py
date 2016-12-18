@@ -9,10 +9,10 @@ class LastFmHelper(object):
         self.numTiles = self.rows * self.cols
 
     # Create based on class name:
-    def factory(type, user, cols, rows, time):
-        if type == "Album": return AlbumHelper(user, cols, rows, time)
-        if type == "Artist": return ArtistHelper(user, cols, rows, time)
-        assert 0, "Bad LastFmHelper creation: " + type
+    def factory(sort_type, user, cols, rows, time):
+        if sort_type == "Album": return AlbumHelper(user, cols, rows, time)
+        if sort_type == "Artist": return ArtistHelper(user, cols, rows, time)
+        assert 0, "Bad LastFmHelper creation: " + sort_type
     factory = staticmethod(factory)
 
 class AlbumHelper(LastFmHelper):

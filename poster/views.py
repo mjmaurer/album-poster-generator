@@ -1,10 +1,17 @@
 from django.shortcuts import render
 from django.template import loader, Context
+from wsgiref.util import FileWrapper
 
 from spotipy import oauth2
 import spotipy
 
+import urllib
+import cv2
+import numpy as np
+from PIL import Image
+
 import pylast
+import StringIO
 
 from django.http import HttpResponse
 from django.http import HttpRequest
@@ -76,22 +83,22 @@ def parse_albums(albums_result):
         if (len(album['images']) > 0 and album['images'][0]['url'] not in seen):
             result[album['name']] =  album['images'][0]['url'] if len(album['images']) > 0 else "{% static 'poster/img/default_album.png' %}"
             seen.add(album['images'][0]['url'])
-        print album['name']
-        print album['images'][0]['url']
-        print len(album['images'])
+        # print album['name']
+        # print album['images'][0]['url']
+        # print len(album['images'])
         # TODO default pic for no 
     return result
 
 def get_artist_ids(result):
     artists = []
     for artist in result['items']:
-        print (artist['id'], artist['name'])
+        # print (artist['id'], artist['name'])
         artists.append((artist['id'], artist['name']))
     return artists
 
 def spotify_setup(request):
     template = loader.get_template('poster/spotifysetup.html')
-    return HttpResponse({"action" : "spotify_main"}, template.render(request))
+    return HttpResponse(template.render({"action" : "spotify_main"}, request))
 
 def lastfm_setup(request):
     template = loader.get_template('poster/lastfmsetup.html')
@@ -227,3 +234,74 @@ def lastfm_main(request):
         # TODO session has expired and take this sys shit out
         template = loader.get_template('poster/index.html')
         return HttpResponse(template.render(request)) 
+
+def pic_stitch(request):
+    print request.POST
+    urlList = request.POST.getlist('picUrls[]')
+    albumNames = request.POST.getlist('albumNames[]')
+    print albumNames
+    # urlList = urlList[0].split(",")
+    # albumNames = albumNames[0].split(",")
+    img = make_tiled_image(urlList, albumNames, request)
+    img = cv2.resize(img, (9600, 9600))
+    print img.shape
+    img = cv2.imencode('.jpg', img)[1].tostring()
+    response = HttpResponse(FileWrapper(StringIO.StringIO(img)), content_type='image/jpeg')
+    response['Content-Disposition'] = 'attachment; filename="pic.jpg"'
+    return response
+
+def url_to_image(url, albumName):
+    # download the image, convert it to a NumPy array, and then read
+    # it into OpenCV format
+    print albumName + " " + url
+    resp = urllib.urlopen(url)
+    imageNp = np.asarray(bytearray(resp.read()), dtype="uint8")
+    
+    image = cv2.imdecode(imageNp, cv2.IMREAD_COLOR)
+    if image == None:
+        # buf = StringIO.StringIO()
+        # Image.fromarray(imageNp).save(buf, "jpeg")
+        # imageNp = np.asarray(bytearray(buf.read()), dtype="uint8")
+        # image = cv2.imdecode(imageNp, cv2.IMREAD_COLOR)
+        spotify = spotipy.Spotify()
+        results = spotify.search(q='album:' + albumName, type='album')
+        url = parse_albums(results['albums'])[albumName]
+        resp = urllib.urlopen(url)
+        imageNp = np.asarray(bytearray(resp.read()), dtype="uint8")
+        print "retry"
+        print imageNp.shape
+        
+        image = cv2.imdecode(imageNp, cv2.IMREAD_COLOR)
+    else:
+        print ""
+    print type(image)
+    print image.shape
+    # return the image
+    return image
+
+def make_tiled_image(urlList, albumNames, request):
+    print urlList
+    print albumNames
+    cvImages = map(lambda i: url_to_image(urlList[i], albumNames[i]), range(len(urlList)))
+    row, col = poster_dim_from_session(request)
+    w, h = (0, 0)
+    for img in cvImages:
+        w = max(w, img.shape[0])
+        h = max(h, img.shape[1])
+
+    w, h = max(w, h), max(w, h)
+    for i in range(len(cvImages)):
+        img = cvImages[i]
+        if not img.shape[:2] == (w, h):
+            print "resize"
+            cvImages[i] = cv2.resize(img, (w, h))
+
+    imageRows = ()
+    for i in range(row):
+        cvImagesInRow = cvImages[i*col:i*col+col]
+        imageRows = imageRows + (np.concatenate(tuple(cvImagesInRow), axis=1),)
+
+    return np.concatenate(imageRows, axis=0)
+
+def get_album_pic_url_from_spotify(searchTerm):
+    return
