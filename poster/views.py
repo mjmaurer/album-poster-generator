@@ -240,8 +240,8 @@ def pic_stitch(request):
     urlList = request.POST.getlist('picUrls[]')
     albumNames = request.POST.getlist('albumNames[]')
     print albumNames
-    # urlList = urlList[0].split(",")
-    # albumNames = albumNames[0].split(",")
+    urlList = urlList[0].split(",")
+    albumNames = albumNames[0].split(",")
     img = make_tiled_image(urlList, albumNames, request)
     img = cv2.resize(img, (9600, 9600))
     print img.shape
