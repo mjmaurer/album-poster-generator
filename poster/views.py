@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.template import loader, Context
 from wsgiref.util import FileWrapper
+from random import randint
 
 from spotipy import oauth2
 import spotipy
@@ -17,11 +18,13 @@ from django.http import HttpResponse
 from django.http import HttpRequest
 from django.http import HttpResponseRedirect
 from lastfmhelper import LastFmHelper
+from spotifyhelper import SpotifyHelper
 import sys, os
 
 import sys
 from sets import Set
 
+import util
 from util import get_period_from_string
 from gmusicapi import Mobileclient
 import musicbrainzngs
@@ -52,50 +55,6 @@ def period_from_session(request):
     else:
         raise Exception("No query args present for type")
 
-# Context is:
-# artist_rows : 
-#   1 : [{title: url}, {title: url}, ...]
-#   2 : ...
-# span_sized:
-#   12 / cols
-def build_poster_template_context(rows, cols, artists, spotipy):
-    context = {}
-    context['artist_rows'] = {}
-    context['span_sized'] = "span" + str(12 / cols)
-    for i in range(rows):
-        newRow = {}
-        for j in range(cols):
-            albums_result = spotipy.artist_albums(artists[i * cols + j][0], album_type='album', country="US", limit=15)
-            if (len(albums_result['items']) == 0):
-                albums_result = spotipy.artist_albums(artists[i * cols + j][0], limit=5)
-            album_data = parse_albums(albums_result)
-            newRow[j] = album_data
-        context['artist_rows'][i] = newRow
-    return context
-
-
-def parse_albums(albums_result):
-    result = {}
-
-    seen = Set()
-
-    for album in albums_result["items"]:
-        if (len(album['images']) > 0 and album['images'][0]['url'] not in seen):
-            result[album['name']] =  album['images'][0]['url'] if len(album['images']) > 0 else "{% static 'poster/img/default_album.png' %}"
-            seen.add(album['images'][0]['url'])
-        # print album['name']
-        # print album['images'][0]['url']
-        # print len(album['images'])
-        # TODO default pic for no 
-    return result
-
-def get_artist_ids(result):
-    artists = []
-    for artist in result['items']:
-        # print (artist['id'], artist['name'])
-        artists.append((artist['id'], artist['name']))
-    return artists
-
 def spotify_setup(request):
     template = loader.get_template('poster/spotifysetup.html')
     return HttpResponse(template.render({"action" : "spotify_main"}, request))
@@ -103,6 +62,19 @@ def spotify_setup(request):
 def lastfm_setup(request):
     template = loader.get_template('poster/lastfmsetup.html')
     return HttpResponse(template.render({"action" : "lastfm_main"}, request))
+
+def custom_setup(request):
+    template = loader.get_template('poster/freeformsetup.html')
+    return HttpResponse(template.render({"action" : "custom_main"}, request))
+
+def custom_main(request):
+    if request.GET.get("row") is not None and request.GET.get("col") is not None:
+        request.session['poster_col'] = request.GET.get("col")
+        request.session['poster_row'] = request.GET.get("row")
+
+    template = loader.get_template('poster/freeformmain.html')
+    return HttpResponse(template.render(
+        util.build_custom_template_context(int(request.session['poster_row']), int(request.session['poster_col'])), request))
 
 def spotify_auth(request):
     sp_oauth = oauth2.SpotifyOAuth(ids.SPOTIFY_CLIENT_ID, ids.SPOTIFY_APP_SECRET,
@@ -169,12 +141,17 @@ def spotify_main(request):
     else:
         return spotify_auth(request)
 
+    if (request.GET.get("type") is not None):
+        request.session['type'] = request.GET.get("type")
+    else:
+        request.session['type'] = "Artist"
+
     sp = spotipy.Spotify(auth=token)
     try:
         row, col = poster_dim_from_session(request) 
-        result = sp.current_user_top_artists(limit=row * col, offset=0, time_range=period_from_session(request))
-        artists = get_artist_ids(result)
-        context = build_poster_template_context(row, col, artists, sp)
+        myType = type_from_session(request)
+        period = period_from_session(request)
+        context = SpotifyHelper.factory(myType, sp, col, row, period).create_context()
         template = loader.get_template('poster/postersetup.html')
         return HttpResponse(template.render(context, request)) 
     except spotipy.SpotifyException as e:
@@ -207,7 +184,7 @@ def lastfm_main(request):
     if (request.GET.get("type") is not None):
         request.session['type'] = request.GET.get("type")
     else:
-        request.session['type'] = "Album"
+        request.session['type'] = "Artist"
 
 
     if ("key" in request.session):
@@ -235,39 +212,77 @@ def lastfm_main(request):
         template = loader.get_template('poster/index.html')
         return HttpResponse(template.render(request)) 
 
-def pic_stitch(request):
-    print request.POST
-    urlList = request.POST.getlist('picUrls[]')
-    albumNames = request.POST.getlist('albumNames[]')
+
+def wait_for_load(request):
+    if "url_list" not in request.session:
+        # TODO display error page
+        template = loader.get_template('poster/index.html')
+        return HttpResponse(template.render(request))
+
+    urlList = request.session["url_list"]
+    albumNames = request.session["album_names"]
+    myType = type_from_session(request)
+
+    print "Ablum name"
     print albumNames
-    urlList = urlList[0].split(",")
-    albumNames = albumNames[0].split(",")
-    img = make_tiled_image(urlList, albumNames, request)
-    img = cv2.resize(img, (9600, 9600))
+    if myType == 'Album':
+        img = make_tiled_image(urlList, albumNames, request)
+    else:
+        img = make_tiled_image_artist(urlList, albumNames, request)
+    scale = 9000.0 / img.shape[0] 
+    # TODO Try to compress or something
+    img = cv2.resize(img, (int(img.shape[0] * scale), int(scale * img.shape[1])))
     print img.shape
     img = cv2.imencode('.jpg', img)[1].tostring()
     response = HttpResponse(FileWrapper(StringIO.StringIO(img)), content_type='image/jpeg')
     response['Content-Disposition'] = 'attachment; filename="pic.jpg"'
     return response
 
-def url_to_image(url, albumName):
+
+def pic_stitch(request):
+    print request.POST
+    urlList = request.POST.getlist('picUrls')
+
+    albumNames = None
+    if request.POST.getlist('albumNames') is not None:
+        albumNames = request.POST.getlist('albumNames')
+        albumNames = albumNames[0].split(",")
+    
+    request.session['album_names'] = albumNames
+    urlList = urlList[0].split(",")
+    request.session['url_list'] = urlList
+    
+
+    template = loader.get_template('poster/loading.html')
+    return HttpResponse(template.render(request))     
+    
+
+def url_to_image(url, name, myType):
     # download the image, convert it to a NumPy array, and then read
     # it into OpenCV format
-    print albumName + " " + url
     resp = urllib.urlopen(url)
     imageNp = np.asarray(bytearray(resp.read()), dtype="uint8")
-    
-    image = cv2.imdecode(imageNp, cv2.IMREAD_COLOR)
+    try:
+        image = cv2.imdecode(imageNp, cv2.IMREAD_COLOR)
+    except:
+        image = None
+        print "Error occured: " + str(sys.exc_info()[0])
     if image == None:
         # buf = StringIO.StringIO()
         # Image.fromarray(imageNp).save(buf, "jpeg")
         # imageNp = np.asarray(bytearray(buf.read()), dtype="uint8")
         # image = cv2.imdecode(imageNp, cv2.IMREAD_COLOR)
         spotify = spotipy.Spotify()
-        results = spotify.search(q='album:' + albumName, type='album')
-        url = parse_albums(results['albums'])[albumName]
+        if myType == 'Artist':
+            results = spotify.search(q='artist:' + name, type='artist')
+            result = results['artists']
+        else:
+            results = spotify.search(q='album:' + name, type='album')
+            result = results['albums']
+        url = util.parse_albums(result).values()[0]
         resp = urllib.urlopen(url)
         imageNp = np.asarray(bytearray(resp.read()), dtype="uint8")
+        # TODO if spotify couldn't find anything
         print "retry"
         print imageNp.shape
         
@@ -281,8 +296,7 @@ def url_to_image(url, albumName):
 
 def make_tiled_image(urlList, albumNames, request):
     print urlList
-    print albumNames
-    cvImages = map(lambda i: url_to_image(urlList[i], albumNames[i]), range(len(urlList)))
+    cvImages = map(lambda i: url_to_image(urlList[i], albumNames[i], 'Album'), range(len(urlList)))
     row, col = poster_dim_from_session(request)
     w, h = (0, 0)
     for img in cvImages:
@@ -303,5 +317,47 @@ def make_tiled_image(urlList, albumNames, request):
 
     return np.concatenate(imageRows, axis=0)
 
-def get_album_pic_url_from_spotify(searchTerm):
-    return
+def make_tiled_image_artist(urlList, artistNames, request):
+    print urlList
+    print len(artistNames)
+    if (artistNames is not None and len(artistNames) > 1):
+        cvImages = map(lambda i: url_to_image(urlList[i], artistNames[i], "Artist"), range(len(urlList)))
+    else:
+        cvImages = map(lambda i: url_to_image(urlList[i], "", "Artist"), range(len(urlList)))
+    print len(cvImages)
+    row, col = poster_dim_from_session(request)
+
+    w = 0
+    for img in cvImages:
+        w = max(w, img.shape[1])
+
+    # Go column by column, resize first
+    for colIndex in range(col):
+        for i in range(len(cvImages))[colIndex:row * col + 1:row]:
+            img = cvImages[i]
+            if (not img.shape[1] == w):
+                size_ratio = img.shape[0] / float(img.shape[1])
+                print size_ratio
+                cvImages[i] = cv2.resize(img, (w, int(w * size_ratio)))
+                print cvImages[i].shape
+        print "New column"
+
+    # Create each column
+    h = 0
+    imageCols = ()
+    for colIndex in range(col):
+        cvImagesInCol = cvImages[colIndex:row * col + 1:row]
+        column = np.concatenate(tuple(cvImagesInCol), axis=0)
+        h = max(h, column.shape[0])
+        imageCols = imageCols + (column,)
+        print column.shape
+
+    print (h,w * col,3)
+    blank_image = np.zeros((h,w * col,3), np.uint8)
+    for i in range(col):
+        column = imageCols[i]
+        widthStart = w * i
+        heightStart = randint(0, h - column.shape[0])
+        blank_image[heightStart:heightStart+column.shape[0], widthStart:widthStart+w] = column
+
+    return blank_image

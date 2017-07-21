@@ -1,0 +1,57 @@
+{% extends "poster/index.html" %}
+{% load staticfiles %}
+
+{% block content %}
+<div class="container">
+      <!--PAGE TITLE-->
+
+    <div class="row">
+        <div class="span12">
+        <div class="page-header">
+                <h1>
+                Contact
+            </h1>
+        </div>
+        </div>
+    </div>
+
+  <!-- /. PAGE TITLE-->
+
+  <div class="row">
+
+        <form action="pic_stitch" id="submitPoster" onsubmit="onSubmit()" method="post">{% csrf_token %}
+          <input type="hidden" name="picUrls" id="picUrls">
+          <input type="hidden" name="albumNames" id="albumNames">
+          <input type="submit" value="Download the pic!">
+        </form>
+        <script>
+            $("body").prepend('<div id="overlay" class="ui-widget-overlay" style="z-index: 1001; display: none;"></div>');
+            $("body").prepend("<div id='PleaseWait' style='display: none;'><img src='{% static 'poster/img/spinner.gif' %}'/></div>");
+            var onSubmit = function() {
+              var urlValues = [];
+              $('.urlInput').each(function() {
+                urlValues.push(this.value);
+              });
+              // TODO validate urls here
+              document.getElementById("picUrls").value = urlValues;
+
+              $("#overlay, #PleaseWait").show();
+            }
+        </script>
+        <div class="container">
+          <form action="pic_stitch" id="submitPoster" onsubmit="onSubmit()" method="post">{% csrf_token %}
+          {% for obj in cols %}
+              <div class="row">
+              {% for obj2 in rows %}
+              <div class="{{ span_sized }} nopadding" id="pic{{ forloop.parentloop.counter }}{{ forloop.parentloop.parentloop.counter }}" style="position:relative;">
+                   <input type="text" class="urlInput" name="albumNames" id="albumNames">
+              </div>
+              {% endfor %}
+              </div>
+          {% endfor %}
+          </form>
+        </div>
+  </div>
+
+</div>
+{% endblock %}

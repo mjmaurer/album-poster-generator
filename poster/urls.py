@@ -11,4 +11,7 @@ urlpatterns = [
     url(r'^lastfm_auth$', views.lastfm_auth, name='lastfm_auth'),
     url(r'^lastfm_main$', views.lastfm_main, name='lastfm_main'),
     url(r'^pic_stitch$', views.pic_stitch, name='pic_stitch'),
+    url(r'^custom_setup$', views.custom_setup, name='custom_setup'),
+    url(r'^custom_main$', views.custom_main, name='custom_main'),
+    url(r'^wait_for_load$', views.wait_for_load, name='wait_for_load'),
 ]

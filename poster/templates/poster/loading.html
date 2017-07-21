@@ -1,0 +1,11 @@
+{% extends "poster/index.html" %}
+{% load staticfiles %}
+
+{% block content %}
+Please wait while I biggifying the picture and do various other computerings...
+<br><br>
+Your image should be downloaded soon. If not please try again!
+<script>
+    location.href = 'wait_for_load';
+</script>
+{% endblock %}
